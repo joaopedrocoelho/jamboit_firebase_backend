@@ -31,13 +31,13 @@ export const Login = async (req: Request, res: Response) => {
 
 
 export const oAuth2Callback = async (req: Request, res: Response) => {
-    const code = req.body.code;
-
+    const code = req.query.code;
+ 
     if (code) {
         console.log(`Code is ${code}`);
         // Now that we have the code, use that to acquire tokens
         try {
-            const tokens = await oAuth2Client.getToken(code);
+            const tokens = await oAuth2Client.getToken(code as string);
             console.info('Tokens acquired.');
             // Make sure to set the credentials on the OAuth2 client.
             oAuth2Client.setCredentials(tokens.tokens);
@@ -88,18 +88,11 @@ export const oAuth2Callback = async (req: Request, res: Response) => {
                 JSON.stringify(tokens.tokens.refresh_token),
                 { maxAge: 900000, httpOnly: true })
 
-            return res.status(200).send({
-                status: 'success',
-                message: 'Successfully logged in',
-                data: {
-                    displayName,
-                    email,
-                    photo,
-                    id: newUserId,
-                }
-            })
+            //#TODO add params to redirect
+            return res.redirect('http://localhost:5000/create');
         } catch (error) {
             console.log('error', error)
+            //#TODO: Redirect error
             return res.status(500).send({
                 status: 'error',
                 message: 'Error logging in',
@@ -107,6 +100,12 @@ export const oAuth2Callback = async (req: Request, res: Response) => {
             })
         }
 
+    } else {
+        return res.status(400).send({
+            status: 'error',
+            message: 'No code provided',
+            data: null
+        })
     }
 }
 
