@@ -1,75 +1,77 @@
-import { OAuth2Client } from "google-auth-library";
-import http from "http";
-import url from "url";
-import open from "open";
-import destroyer from "server-destroy";
-import { google } from "googleapis";
-import path from "path";
+
 import express from "express";
-import { readFile } from 'fs/promises';
 import dotenv from 'dotenv';
+import cors from 'cors';
+import { routes } from "./routes";
 
 dotenv.config();
 
-
-const SCOPES = ["https://www.googleapis.com/auth/drive.metadata.readonly"];
-
-
 const app = express();
 
-const oAuth2Client = new OAuth2Client(
-    process.env.CLIENT_ID,
-    process.env.CLIENT_SECRET,
-    process.env.REDIRECT_URIS
-);
+app.use(cors({
+  origin: '*',
+}));
 
-// Generate the url that will be used for the consent dialog.
-const authorizeUrl = oAuth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: 'https://www.googleapis.com/auth/drive.metadata.readonly',
+app.use(express.json());
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  if (req.method == "OPTIONS") {
+    res.header("Access-Control-Allow-Methods", "PUT, POST, PATCH, DELETE, GET");
+    return res.status(200).json({});
+  }
+
+  next();
 });
+
+routes(app);
 
 
 
 app.listen("3000", () => {
-    console.log("Server is running on port 3000");
-    // open the browser to the authorize url to start the workflow
-    open(authorizeUrl, { wait: false }).then(cp => cp.unref());
+  console.log("Server is running on port 3000");
 });
 
 app.get("/", (req, res) => {
-    res.send("<h1>Hello!</h1>");
+  res.send("<h1>Hello!</h1>");
 
 });
 
-app.get('/login', async (req, res) => {
-    res.send('<h1>Login!</h1>');
-    const qs = new url.URL(req.url, 'http://localhost:3000')
-        .searchParams;
-    const code = qs.get('code');
-    console.log(`Code is ${code}`);
-     // Now that we have the code, use that to acquire tokens.
-     const r = await oAuth2Client.getToken(code);
-     // Make sure to set the credentials on the OAuth2 client.
-     oAuth2Client.setCredentials(r.tokens);
-     console.info('Tokens acquired.');
-     listFiles(oAuth2Client);
-});
 
-async function listFiles(authClient) {
-    const drive = google.drive({ version: 'v3', auth: authClient });
-    const res = await drive.files.list({
-      pageSize: 10,
-      fields: 'nextPageToken, files(id, name)',
-    });
-    const files = res.data.files;
-    if (files.length === 0) {
-      console.log('No files found.');
-      return;
+/* app.post('/getUserForms', async (req: Record<string, any>, res) => {
+  console.log('getting forms')
+  const auth = JSON.parse(decodeURIComponent(req.query.oauth));
+  await getAllForms(auth);
+
+});
+ */
+/* async function getAllForms(auth: OAuth2Client) {
+
+  const drive = google.drive({ version: "v3", auth: auth });
+  const forms = google.forms({
+    version: "v1",
+    auth: auth,
+  });
+
+  const params = { q: "mimeType='application/vnd.google-apps.form'" };
+
+  const res = await drive.files.list(params);
+  let userForms = [];
+  for (const form of res.data.files) {
+    const loadedForm = await forms.forms.get({ formId: form.id });
+    console.log('searching for quizzes')
+    if (loadedForm.data?.settings?.quizSettings.isQuiz == true) {
+      console.log('Found a Quiz!')
+      userForms.push(loadedForm.data);
     }
-  
-    console.log('Files:');
-    files.map((file) => {
-      console.log(`${file.name} (${file.id})`);
-    });
+
   }
+
+  console.log('userForms', userForms);
+  return userForms;
+}
+ */
