@@ -9,7 +9,8 @@ import { sign, verify, JwtPayload } from "jsonwebtoken";
 
 dotenv.config();
 
-const oAuth2Client = new OAuth2Client(
+//#TODO: Move this to a utils file
+export const oAuth2Client = new OAuth2Client(
     process.env.CLIENT_ID,
     process.env.CLIENT_SECRET,
     process.env.REDIRECT_URIS
