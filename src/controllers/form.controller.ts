@@ -11,7 +11,7 @@ export const getQuizzes = async (req: Request, res: Response) => {
     // and get the refresh token from the database
     if (!refreshToken) {
         res.status(401).send({
-            message: "Unauthorized",  
+            message: "Unauthorized",
         });
         return res.end();
     }
@@ -31,13 +31,17 @@ export const getQuizzes = async (req: Request, res: Response) => {
             q: "mimeType='application/vnd.google-apps.form'",
             //#TODO apparently the max page size is 1000, refactor this to get all the forms
             //in case the user has more than 1000 forms (and the response has incompleteSearch: true)
-        }).then((response) =>  response.data );
-        
+        }).then((response) => response.data);
 
+        console.log(formsList)
+
+        if (formsList.length === 0) {
+            res.status(200).json([]);
+            return res.end();
+        }
         const quizList = await getQuizList(formsList, forms);
-        
 
-       
+
         res.status(200).json(quizList);
         return res.end();
 
@@ -56,12 +60,12 @@ export const getQuizzes = async (req: Request, res: Response) => {
 
 }
 
-const getQuizList = async (formsList:drive_v3.Schema$File[], forms:forms_v1.Resource$Forms) => {
-    const quizList:forms_v1.Schema$Form[] = [];
+export const getQuizList = async (formsList: drive_v3.Schema$File[], forms: forms_v1.Resource$Forms) => {
+    const quizList: forms_v1.Schema$Form[] = [];
 
-    for(const form of formsList) {
-        await forms.get({formId: form?.id}).then((form) => {
-        form.data?.settings?.quizSettings?.isQuiz ? quizList.push(form.data) : null;
+    for (const form of formsList) {
+        await forms.get({ formId: form?.id }).then((form) => {
+            form.data?.settings?.quizSettings?.isQuiz ? quizList.push(form.data) : null;
         });
     }
 

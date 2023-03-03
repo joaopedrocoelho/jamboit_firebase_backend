@@ -85,7 +85,7 @@ export const OAuth2Callback = async (req: Request, res: Response) => {
 
                 res.cookie('refresh_token',
                     encodedToken,
-                    { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite:'none' })
+                    { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true })
 
                 return res.redirect('http://localhost:5000/');
 
@@ -138,11 +138,20 @@ export const AuthenticateUser = async (req: Request, res: Response) => {
             });
         }
 
-        const decodedToken =
-            verify(refreshToken[0], process.env.CLIENT_SECRET) as JwtPayload;
+        let decodedToken:JwtPayload;
+            verify(refreshToken[0], process.env.CLIENT_SECRET,
+                (err, decoded) => {
+                    if (err) {
+                        res.status(500).send({
+                            message: "Couldn't decode token",
+                        });
+                        return res.end();
+                    }
+                    decodedToken = decoded as JwtPayload;
+                });
 
 
-        if (decodedToken.refresh_token == null) {
+        if (decodedToken?.refresh_token == null ) {
             return res.status(500).send({
                 message: "Couldn't decode token",
             });
