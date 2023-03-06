@@ -297,7 +297,7 @@ const updateRefreshToken = async (email: string, refreshToken: string) => {
                 console.log(`User found with ID ${userId}`);
                 // Update the user's refresh token
                 return update(ref(database, `users/${userId}`), {
-                    ['/users/' + userId + '/refreshToken']: refreshToken,
+                    ['/refreshToken']: refreshToken,
                 })
                     .then(() => {
                         console.log('Refresh token updated for user with ID ' + userId)
