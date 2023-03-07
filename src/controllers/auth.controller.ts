@@ -127,7 +127,7 @@ export const OAuth2Callback = async (req: Request, res: Response) => {
 export const AuthenticateUser = async (req: Request, res: Response) => {
     try {
         const regExp = new RegExp(/(?<=refresh_token=)[^;]+(?!;)/);
-        const refreshToken = regExp.exec(req.header('Cookie'));
+        const refreshToken = regExp.exec(req.header('Cookie')); 
 
 
         if (!refreshToken) {
@@ -152,9 +152,10 @@ export const AuthenticateUser = async (req: Request, res: Response) => {
 
 
         if (decodedToken?.refresh_token == null ) {
-            return res.status(500).send({
+            res.status(500).send({
                 message: "Couldn't decode token",
             });
+            return res.end();
         }
 
 
@@ -189,12 +190,7 @@ export const AuthenticateUser = async (req: Request, res: Response) => {
 
     } catch (error) {
         console.log('error', error)
-        return res.status(500).send({
-            status: 'error',
-            message: 'Error authenticating user',
-            data: error
-        })
-    }
+        }
 
 }
 

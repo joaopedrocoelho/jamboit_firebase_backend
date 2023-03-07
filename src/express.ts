@@ -3,6 +3,7 @@ import express from "express";
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { routes } from "./routes";
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
 dotenv.config();
 
@@ -35,8 +36,16 @@ routes(app);
 
 
 
-app.listen("3000", () => {
+app.listen("3000", async () => {
   console.log("Server is running on port 3000");
+  const auth = getAuth();
+  await signInWithEmailAndPassword(auth, 
+    process.env.FIREBASE_EMAIL, 
+    process.env.FIREBASE_PASSWORD).then((userCredential) => {
+      console.log('logged in on Firebase')
+    }).catch((error) => {
+      console.log('error', error)
+    });
 });
 
 app.get("/", (req, res) => {
