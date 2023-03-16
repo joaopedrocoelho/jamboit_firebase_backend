@@ -1,59 +1,51 @@
-
+import 'reflect-metadata';
 import express from "express";
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { routes } from "./routes";
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { AppDataSource } from './db/data-source';
+import { User } from './db/entity/user.entity';
 
 dotenv.config();
 
-const app = express();
+AppDataSource.initialize().then(() => {
+  const app = express();
 
-app.use(cors({
-  origin: 'http://localhost:5000',
-  credentials: true,
-}));
+  app.use(cors({
+    origin: 'http://localhost:5000',
+    credentials: true,
+  }));
 
+  app.use(express.json());
 
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "http://localhost:5000");
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    );
+    if (req.method == "OPTIONS") {
+      res.header("Access-Control-Allow-Methods", "PUT, POST, PATCH, DELETE, GET");
+      return res.status(200).json({});
+    }
 
-app.use(express.json());
+    next();
+  });
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:5000");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-  );
-  if (req.method == "OPTIONS") {
-    res.header("Access-Control-Allow-Methods", "PUT, POST, PATCH, DELETE, GET");
-    return res.status(200).json({});
-  }
+  routes(app);
 
-  next();
-});
-
-routes(app);
-
-
-
-app.listen("3000", async () => {
   console.log("Server is running on port 3000");
   const auth = getAuth();
-  await signInWithEmailAndPassword(auth, 
-    process.env.FIREBASE_EMAIL, 
-    process.env.FIREBASE_PASSWORD).then((userCredential) => {
-      console.log('logged in on Firebase')
-    }).catch((error) => {
-      console.log('error', error)
+   app.listen("3000", async () => {
+
+    app.get("/", (req, res) => {
+      res.send("<h1>Hello!</h1>");
+
     });
+
+  })
 });
-
-app.get("/", (req, res) => {
-  res.send("<h1>Hello!</h1>");
-
-});
-
-
 /* app.post('/getUserForms', async (req: Record<string, any>, res) => {
   console.log('getting forms')
   const auth = JSON.parse(decodeURIComponent(req.query.oauth));
