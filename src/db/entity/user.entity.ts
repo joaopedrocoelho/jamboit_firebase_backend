@@ -17,6 +17,5 @@ export class User {
     photo!: string; 
 
     @Column({ nullable: false })
-    refreshToken!: string; 
-    
+    refreshToken!: string;  
 }
