@@ -3,11 +3,32 @@ import express from "express";
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { routes } from "./routes";
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import { AppDataSource } from './db/data-source';
-import { User } from './db/entity/user.entity';
+import { DataSource } from 'typeorm';
+import * as entities from "./db/entity";
 
-dotenv.config();
+
+
+if (process.env.NODE_ENV === 'production') {
+  dotenv.config({ path: '.env.production' });
+} else {
+  dotenv.config({ path: '.env.development' });
+}
+
+const AppDataSource= new DataSource({
+  type: "postgres",
+  host: process.env.SUPABASE_DB_URL,
+  username: "postgres",
+  password: process.env.SUPABASE_DB_PASSWORD,
+  port: parseInt(process.env.SUPABASE_DB_PORT),
+  database: "postgres",
+  synchronize: true,
+  logging: false,
+  entities: [
+      ...Object.values(entities)
+  ],
+  subscribers: [],
+  migrations: [],
+})
 
 AppDataSource.initialize().then(() => {
   const app = express();
@@ -36,7 +57,6 @@ AppDataSource.initialize().then(() => {
   routes(app);
 
   console.log("Server is running on port 3000");
-  const auth = getAuth();
    app.listen("3000", async () => {
 
     app.get("/", (req, res) => {
@@ -46,36 +66,4 @@ AppDataSource.initialize().then(() => {
 
   })
 });
-/* app.post('/getUserForms', async (req: Record<string, any>, res) => {
-  console.log('getting forms')
-  const auth = JSON.parse(decodeURIComponent(req.query.oauth));
-  await getAllForms(auth);
 
-});
- */
-/* async function getAllForms(auth: OAuth2Client) {
-
-  const drive = google.drive({ version: "v3", auth: auth });
-  const forms = google.forms({
-    version: "v1",
-    auth: auth,
-  });
-
-  const params = { q: "mimeType='application/vnd.google-apps.form'" };
-
-  const res = await drive.files.list(params);
-  let userForms = [];
-  for (const form of res.data.files) {
-    const loadedForm = await forms.forms.get({ formId: form.id });
-    console.log('searching for quizzes')
-    if (loadedForm.data?.settings?.quizSettings.isQuiz == true) {
-      console.log('Found a Quiz!')
-      userForms.push(loadedForm.data);
-    }
-
-  }
-
-  console.log('userForms', userForms);
-  return userForms;
-}
- */
