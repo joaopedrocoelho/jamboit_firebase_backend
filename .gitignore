@@ -9,7 +9,8 @@ yarn-error.log*
 node_modules/
 
 # Environment variables
-.env
+.env.production
+.env.development
 jestEnvVars.js
 
 # IDEs and editors
