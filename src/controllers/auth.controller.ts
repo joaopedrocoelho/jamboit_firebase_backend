@@ -3,9 +3,12 @@ import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
 import { firebaseApp, database } from "../firebase";
 import { ref, set, push, query, orderByChild, equalTo, get, update } from "firebase/database";
-import { User } from "../models/user.model";
 import dotenv from 'dotenv';
 import { sign, verify, JwtPayload } from "jsonwebtoken";
+import { AppDataSource } from "../db/data-source";
+import { User } from "../db/entity";
+import { UserModel } from "../models/user.model";
+import { typeORMUserDAO as UserDao } from "../db/dao/user-dao";
 
 dotenv.config();
 
@@ -68,18 +71,18 @@ export const OAuth2Callback = async (req: Request, res: Response) => {
                 }
             )
 
-            const user = await retrieveUser(email);
+            const user = await UserDao.getUserByEmail(email);
             if (user) {
                 console.log('User already exists', user);
 
-                const { userId, error: errorRefreshingToken } = await updateRefreshToken(email, encodedToken);
+                const { refreshToken:newToken} = await UserDao.updateRefreshToken(email, encodedToken);
 
 
-                if (errorRefreshingToken) {
+                if (!newToken) {
                     return res.status(500).send({
                         status: 'error',
                         message: 'Error refreshing token',
-                        error: errorRefreshingToken
+                        error: 'Error refreshing token'
                     })
                 }
 
@@ -92,11 +95,11 @@ export const OAuth2Callback = async (req: Request, res: Response) => {
 
             }
 
-            const { newUserId, error: saveToDBError } =
-                await saveUserToDB(displayName, email, photo, encodedToken);
+            const newUser =
+                await UserDao.addUser({displayName, email, photo, refreshToken:encodedToken});
 
-            if (saveToDBError) {
-                throw saveToDBError
+            if (!newUser) {
+                throw new Error('Error creating user');
             }
 
             res.cookie('refresh_token',
@@ -172,7 +175,7 @@ export const AuthenticateUser = async (req: Request, res: Response) => {
 
         // Extract the user's display name, email, and photo 
         const email = person.emailAddresses[0].value;
-        const user = await retrieveUser(email);
+        const user = await UserDao.getUserByEmail(email);
 
         if (!user) {
             return res.status(401).send({
@@ -225,7 +228,7 @@ const getUserInfo = async (oAuth2Client: OAuth2Client) => {
 
 }
 
-const retrieveUser = async (email: string) => {
+const getUserByEmail = async (email: string) => {
     const usersRef = ref(database, '/users');
     const queryRef = query(usersRef, orderByChild('email'), equalTo(email));
 
@@ -239,7 +242,7 @@ const retrieveUser = async (email: string) => {
                 console.log(`User found with ID ${userId}`);
                 const val = snapshot.val();
 
-                return snapshot.val()[userId] as User;
+                return snapshot.val()[userId] as UserModel;
                 // Do something with the user data...
             } else {
                 console.log('User not found');
@@ -248,6 +251,8 @@ const retrieveUser = async (email: string) => {
             }
         })
 }
+
+
 
 const saveUserToDB = async (displayName: string, email: string, photo: string, refreshToken: string) => {
     // Add a new user to the "users" location in the database

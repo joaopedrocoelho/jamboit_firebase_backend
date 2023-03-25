@@ -1,4 +1,4 @@
-import { DataSource } from "typeorm" 
+import { DataSource } from "typeorm"
 
 import * as entities from "./entity";
 
@@ -7,7 +7,7 @@ export const AppDataSource = new DataSource({
     host: process.env.SUPABASE_DB_URL,
     username: "postgres",
     password: process.env.SUPABASE_DB_PASSWORD,
-    port: 5432,
+    port: parseInt(process.env.SUPABASE_DB_PORT),
     database: "postgres",
     synchronize: true,
     logging: false,

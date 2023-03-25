@@ -1,4 +1,4 @@
-export interface User {
+export interface UserModel {
     displayName: string;
     email: string;
     photo: string;
@@ -6,4 +6,3 @@ export interface User {
     refresh_token: string;
     createdAt: number;
   }
-  
