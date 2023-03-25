@@ -1,4 +1,4 @@
-import { DataSource } from "typeorm"
+/* import { DataSource } from "typeorm"
 
 import * as entities from "./entity";
 
@@ -16,4 +16,4 @@ export const AppDataSource = new DataSource({
     ],
     subscribers: [],
     migrations: [],
-})
+}) */

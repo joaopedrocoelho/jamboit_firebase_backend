@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import { routes } from "./routes";
 import { DataSource } from 'typeorm';
-import * as entities from "./db/entity";
+import { entities } from "./db/entity/index";
 
 
 
@@ -14,7 +14,8 @@ if (process.env.NODE_ENV === 'production') {
   dotenv.config({ path: '.env.development' });
 }
 
-const AppDataSource= new DataSource({
+//TODO move this to another file and make it work
+export const AppDataSource= new DataSource({
   type: "postgres",
   host: process.env.SUPABASE_DB_URL,
   username: "postgres",
@@ -23,9 +24,7 @@ const AppDataSource= new DataSource({
   database: "postgres",
   synchronize: true,
   logging: false,
-  entities: [
-      ...Object.values(entities)
-  ],
+  entities: entities,
   subscribers: [],
   migrations: [],
 })

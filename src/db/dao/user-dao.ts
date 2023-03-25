@@ -1,5 +1,5 @@
-import { AppDataSource } from "../data-source";
-import { User } from "../entity";
+import { AppDataSource } from "../../express";
+import { User } from "../entity/user.entity";
 
 export interface UserDAO<T> {
     getUserByEmail(email: string): Promise<T>;

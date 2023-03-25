@@ -5,12 +5,14 @@ import { firebaseApp, database } from "../firebase";
 import { ref, set, push, query, orderByChild, equalTo, get, update } from "firebase/database";
 import dotenv from 'dotenv';
 import { sign, verify, JwtPayload } from "jsonwebtoken";
-import { AppDataSource } from "../db/data-source";
-import { User } from "../db/entity";
 import { UserModel } from "../models/user.model";
 import { typeORMUserDAO as UserDao } from "../db/dao/user-dao";
 
-dotenv.config();
+if (process.env.NODE_ENV === 'production') {
+    dotenv.config({ path: '.env.production' });
+  } else {
+    dotenv.config({ path: '.env.development' });
+  }
 
 //#TODO: Move this to a utils file
 export const oAuth2Client = new OAuth2Client(
@@ -53,7 +55,9 @@ export const OAuth2Callback = async (req: Request, res: Response) => {
             } else {
                 console.warn('No refresh token returned.');
             }
-            const { people, person, error } = await getUserInfo(oAuth2Client);
+            const { person, error } = await getUserInfo(oAuth2Client);
+            console.log('Person', person);
+            console.log('Error', error);
             if (error) {
                 throw error
             }
@@ -164,7 +168,7 @@ export const AuthenticateUser = async (req: Request, res: Response) => {
 
         oAuth2Client.setCredentials({ refresh_token: decodedToken.refresh_token });
 
-        const { people, person, error } = await getUserInfo(oAuth2Client);
+        const {  person, error } = await getUserInfo(oAuth2Client);
 
         if (error) {
             return res.status(401).send({
@@ -220,7 +224,7 @@ const getUserInfo = async (oAuth2Client: OAuth2Client) => {
             personFields: 'names,emailAddresses,photos'
         });
 
-        return { people, person }
+        return { person }
     } catch (error) {
         console.log('error', error)
         return { error }
