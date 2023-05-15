@@ -1,25 +1,31 @@
-import { Column, OneToMany, Entity, PrimaryGeneratedColumn, ManyToMany, ManyToOne } from "typeorm";
+import {
+  Column,
+  OneToMany,
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToMany,
+  ManyToOne,
+} from "typeorm";
 import { Answer } from "./answer.entity";
-import { Quiz } from "./quiz.entity";
+import { Game } from "./game.entity";
 
 @Entity()
 export class Question {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    question: string;
+  @Column()
+  question: string;
 
-    @Column()
-    score: number;
+  @Column()
+  score: number;
 
-    @Column()
-    correct_answer: number;
+  @Column()
+  correct_answer: number;
 
-    @ManyToOne(() => Quiz, quiz => quiz.questions)
-    quiz: Quiz;
+  @ManyToOne(() => Game, (game) => game.questions)
+  game: Game;
 
-    @OneToMany(() => Answer, answer => answer.answer)
-    answers: Answer[];
-
+  @OneToMany(() => Answer, (answer) => answer.answer)
+  answers: Answer[];
 }
