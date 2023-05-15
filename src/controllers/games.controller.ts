@@ -18,6 +18,8 @@ export const getQuizzes = async (req: Request, res: Response) => {
     const decodedToken =
         verify(refreshToken, process.env.CLIENT_SECRET) as JwtPayload;
 
+        
+
     //#TODO check if the token is valid, if not let's get the user e-mail from the request
 
     oAuth2Client.setCredentials({ refresh_token: decodedToken.refresh_token })

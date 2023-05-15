@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { Login, OAuth2Callback, AuthenticateUser, Logout } from "./controllers/auth.controller";
-import { getQuizzes } from "./controllers/form.controller";
+import { getQuizzes } from "./controllers/games.controller";
 
 export const routes = (router:Router) => {
     router.get('/api/login', Login);

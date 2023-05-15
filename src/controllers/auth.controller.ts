@@ -7,12 +7,13 @@ import dotenv from 'dotenv';
 import { sign, verify, JwtPayload } from "jsonwebtoken";
 import { UserModel } from "../models/user.model";
 import { typeORMUserDAO as UserDao } from "../db/dao/user-dao";
+import { nextTick } from "process";
 
 if (process.env.NODE_ENV === 'production') {
     dotenv.config({ path: '.env.production' });
-  } else {
+} else {
     dotenv.config({ path: '.env.development' });
-  }
+}
 
 //#TODO: Move this to a utils file
 export const oAuth2Client = new OAuth2Client(
@@ -79,7 +80,7 @@ export const OAuth2Callback = async (req: Request, res: Response) => {
             if (user) {
                 console.log('User already exists', user);
 
-                const { refreshToken:newToken} = await UserDao.updateRefreshToken(email, encodedToken);
+                const { refreshToken: newToken } = await UserDao.updateRefreshToken(email, encodedToken);
 
 
                 if (!newToken) {
@@ -100,7 +101,7 @@ export const OAuth2Callback = async (req: Request, res: Response) => {
             }
 
             const newUser =
-                await UserDao.addUser({displayName, email, photo, refreshToken:encodedToken});
+                await UserDao.addUser({ displayName, email, photo, refreshToken: encodedToken });
 
             if (!newUser) {
                 throw new Error('Error creating user');
@@ -108,7 +109,7 @@ export const OAuth2Callback = async (req: Request, res: Response) => {
 
             res.cookie('refresh_token',
                 encodedToken,
-                { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite:'none' })
+                { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none' })
 
             //#TODO add params to redirect
             return res.redirect('http://localhost:5000/');
@@ -134,7 +135,7 @@ export const OAuth2Callback = async (req: Request, res: Response) => {
 export const AuthenticateUser = async (req: Request, res: Response) => {
     try {
         const regExp = new RegExp(/(?<=refresh_token=)[^;]+(?!;)/);
-        const refreshToken = regExp.exec(req.header('Cookie')); 
+        const refreshToken = regExp.exec(req.header('Cookie'));
 
 
         if (!refreshToken) {
@@ -145,30 +146,28 @@ export const AuthenticateUser = async (req: Request, res: Response) => {
             });
         }
 
-        let decodedToken:JwtPayload;
-            verify(refreshToken[0], process.env.CLIENT_SECRET,
-                (err, decoded) => {
-                    if (err) {
-                        res.status(500).send({
-                            message: "Couldn't decode token",
-                        });
-                        return res.end();
-                    }
-                    decodedToken = decoded as JwtPayload;
-                });
 
+        const { error: decodeError, decodedToken } = UserDao.decodeJWTToken(refreshToken[0]);
 
-        if (decodedToken?.refresh_token == null ) {
-            res.status(500).send({
+        if (decodeError) {
+            return res.clearCookie('refresh_token', { path: '/', domain: 'localhost', httpOnly: true, sameSite: 'none' })
+            .status(500).send({
                 message: "Couldn't decode token",
             });
-            return res.end();
+        }
+
+
+        if (decodedToken?.refresh_token == null) {
+            return res.clearCookie('refresh_token', { path: '/', domain: 'localhost', httpOnly: true, sameSite: 'none' })
+            .status(500).send({
+                message: "Couldn't decode token",
+            })
         }
 
 
         oAuth2Client.setCredentials({ refresh_token: decodedToken.refresh_token });
 
-        const {  person, error } = await getUserInfo(oAuth2Client);
+        const { person, error } = await getUserInfo(oAuth2Client);
 
         if (error) {
             return res.status(401).send({
@@ -196,18 +195,21 @@ export const AuthenticateUser = async (req: Request, res: Response) => {
 
 
     } catch (error) {
-        console.log('error', error)
-        }
+        console.log('error', error);
+        return res.status(500).send({
+            message: "Internal server error",
+        });
+    }
 
 }
 
 
 export const Logout = async (req: Request, res: Response) => {
-    res.clearCookie('refresh_token', { path: '/', domain: 'localhost', httpOnly: true, sameSite:'none' }).send({
+    res.clearCookie('refresh_token', { path: '/', domain: 'localhost', httpOnly: true, sameSite: 'none' }).send({
         status: 'success',
         message: 'User logged out',
     });
-    res.end();
+    return res.end();
 }
 
 
@@ -232,7 +234,15 @@ const getUserInfo = async (oAuth2Client: OAuth2Client) => {
 
 }
 
-const getUserByEmail = async (email: string) => {
+
+const clearRefreshToken = async (res: Response) => {
+    await res.clearCookie('refresh_token', { path: '/', domain: 'localhost', httpOnly: true, sameSite: 'none' }).send({
+        status: 'success',
+        message: 'User logged out',
+    });
+}
+
+/* const getUserByEmail = async (email: string) => {
     const usersRef = ref(database, '/users');
     const queryRef = query(usersRef, orderByChild('email'), equalTo(email));
 
@@ -327,3 +337,4 @@ const updateRefreshToken = async (email: string, refreshToken: string) => {
         })
 
 }
+ */

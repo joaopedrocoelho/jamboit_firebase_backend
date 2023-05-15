@@ -1,5 +1,5 @@
 import {describe, expect, test, jest, beforeAll} from '@jest/globals';
-import { getQuizList} from './form.controller';
+import { getQuizList} from './games.controller';
 import { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 import { verify, JwtPayload } from 'jsonwebtoken';

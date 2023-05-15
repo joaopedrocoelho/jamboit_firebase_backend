@@ -1,10 +1,12 @@
 import { AppDataSource } from "../../express";
 import { User } from "../entity/user.entity";
+import { verify, JwtPayload, VerifyErrors } from "jsonwebtoken";
 
 export interface UserDAO<T> {
     getUserByEmail(email: string): Promise<T>;
     addUser(user: Partial<T>): Promise<Partial<T> | T>;
     updateRefreshToken(email: string, refreshToken: string): Promise<Partial<T> | T>;
+    decodeJWTToken(token: string): { error: VerifyErrors, decodedToken: JwtPayload};
   }
 
 
@@ -28,5 +30,15 @@ export interface UserDAO<T> {
             const user = await typeORMUserDAO.getUserByEmail(email);
             user.refreshToken = refreshToken;
             return await AppDataSource.getRepository(User).save(user);
+        },
+        decodeJWTToken: (token: string) => {
+            let decodedToken:JwtPayload;
+            let error:VerifyErrors;
+            verify(token, process.env.CLIENT_SECRET,
+                (err, decoded) => {
+                    error = err;
+                    decodedToken = decoded as JwtPayload;
+                });
+            return { error: error, decodedToken: decodedToken };
         }
   };
