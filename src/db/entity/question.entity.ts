@@ -2,7 +2,7 @@ import {
   Column,
   OneToMany,
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   ManyToMany,
   ManyToOne,
 } from "typeorm";
@@ -11,21 +11,21 @@ import { Game } from "./game.entity";
 
 @Entity()
 export class Question {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryColumn()
+  id!: number;
 
   @Column()
-  question: string;
+  question!: string;
 
   @Column()
-  score: number;
+  score!: number;
 
   @Column()
-  correct_answer: number;
+  correct_answer!: number;
 
   @ManyToOne(() => Game, (game) => game.questions)
   game: Game;
 
-  @OneToMany(() => Answer, (answer) => answer.answer)
+  @OneToMany(() => Answer, (answer) => answer.answer, { onDelete: "CASCADE" })
   answers: Answer[];
 }
