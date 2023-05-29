@@ -24,12 +24,16 @@ export const typeORMUserDAO: UserDAO<User> = {
       .getOne();
   },
   getUserByRefreshToken: async (refreshToken: string) => {
-    return await AppDataSource.getRepository(User)
+    console.log(refreshToken);
+    const user = await AppDataSource.getRepository(User)
       .createQueryBuilder("user")
       .where("user.refreshToken = :refreshToken", {
         refreshToken: refreshToken,
       })
       .getOne();
+
+    console.log("user", user);
+    return user;
   },
   addUser: async ({ displayName, email, photo, refreshToken }) => {
     const user = new User();

@@ -95,6 +95,8 @@ export const createGame = async (req: Request, res: Response) => {
     });
   }
 
+  console.log("refreshToken", refreshToken);
+
   const { error: decodeError, decodedToken } = UserDao.decodeJWTToken(
     refreshToken[0]
   );
@@ -110,6 +112,7 @@ export const createGame = async (req: Request, res: Response) => {
       .status(500)
       .send({
         message: "Couldn't decode token",
+        token: refreshToken,
       });
   }
 
@@ -124,6 +127,7 @@ export const createGame = async (req: Request, res: Response) => {
       .status(500)
       .send({
         message: "Couldn't decode token",
+        token: refreshToken,
       });
   }
 
@@ -141,11 +145,11 @@ export const createGame = async (req: Request, res: Response) => {
       })
       .status(500)
       .send({
-        message: "Couldn't decode token",
+        message: "Couldn't find user",
       });
   }
 
-  const newGame = await GameDao.createGame(game);
+  const newGame = await GameDao.createGame(game, user);
 
   if (!newGame) {
     return res.status(500).send({

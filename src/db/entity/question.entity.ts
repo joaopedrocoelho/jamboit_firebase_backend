@@ -5,6 +5,7 @@ import {
   PrimaryColumn,
   ManyToMany,
   ManyToOne,
+  PrimaryGeneratedColumn,
 } from "typeorm";
 import { Answer } from "./answer.entity";
 import { Game } from "./game.entity";
@@ -12,16 +13,16 @@ import { Game } from "./game.entity";
 @Entity()
 export class Question {
   @PrimaryColumn()
-  id!: number;
+  index: number;
 
   @Column()
-  question!: string;
+  question: string;
 
   @Column()
-  score!: number;
+  score: number;
 
   @Column()
-  correct_answer!: number;
+  correct_answer: number;
 
   @ManyToOne(() => Game, (game) => game.questions)
   game: Game;

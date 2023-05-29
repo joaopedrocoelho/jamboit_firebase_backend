@@ -82,7 +82,7 @@ export const OAuth2Callback = async (req: Request, res: Response) => {
         { refresh_token: tokens.refresh_token },
         process.env.CLIENT_SECRET,
         {
-          expiresIn: "7d",
+          expiresIn: "30d",
         }
       );
 
@@ -160,6 +160,8 @@ export const AuthenticateUser = async (req: Request, res: Response) => {
         data: "",
       });
     }
+
+    console.log("Refresh token", refreshToken);
 
     const { error: decodeError, decodedToken } = UserDao.decodeJWTToken(
       refreshToken[0]

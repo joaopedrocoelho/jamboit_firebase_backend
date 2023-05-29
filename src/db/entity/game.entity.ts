@@ -11,16 +11,16 @@ import { User } from "./user.entity";
 @Entity()
 export class Game {
   @PrimaryGeneratedColumn("uuid")
-  id!: string;
+  id: string;
 
   @Column()
-  name!: string;
+  name: string;
 
   @OneToMany(() => User, (user) => user.id)
-  user_id!: string;
+  user: User;
 
   @CreateDateColumn()
-  created_at!: Date;
+  created_at: Date;
 
   @OneToMany(() => Question, (question) => question.game, {
     onDelete: "CASCADE",

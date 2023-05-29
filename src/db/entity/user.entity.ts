@@ -1,9 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  PrimaryColumn,
+} from "typeorm";
 import { Game } from "./game.entity";
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryColumn("uuid")
   id: string;
 
   @Column()
@@ -20,6 +26,6 @@ export class User {
   @Column({ nullable: false })
   refreshToken!: string;
 
-  @OneToMany(() => Game, (game) => game.user_id, { onDelete: "CASCADE" })
+  @OneToMany(() => Game, (game) => game.user, { onDelete: "CASCADE" })
   games: Game[];
 }

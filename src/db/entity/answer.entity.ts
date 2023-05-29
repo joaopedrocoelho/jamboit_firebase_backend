@@ -4,10 +4,7 @@ import { Question } from "./question.entity";
 @Entity()
 export class Answer {
   @PrimaryColumn()
-  id!: number;
-
-  @PrimaryColumn()
-  question_id!: number;
+  index: number;
 
   @Column()
   answer!: string;
